@@ -90,7 +90,7 @@
 
         .active {
             color: #fff;
-            background: #f00;
+            background: #f00!important;
         }
     </style>
 </head>
@@ -135,7 +135,7 @@
                     boxHtml += `<div href="#" class="next mov">&gt;</div>`;
                     boxHtml += `<div class="mianbaoxie">`;
                     for (let i = 1; i <= adArr.length; i ++) {
-                        boxHtml += `<span>${i}</span>`;
+                        boxHtml += `<span class="${i == 1 ? "active" : ""}">${i}</span>`;
                     }
                     boxHtml += `</div>`;
 
@@ -168,7 +168,7 @@
                                 if (!ad.isMoving) {
                                     ad.runNext(ad.adsListHTML);
                                 }
-                            }, 5000);
+                            }, 3000);
                         }
                     });
 
@@ -177,7 +177,7 @@
                         if (!ad.isMoving) {
                             ad.runNext(ad.adsListHTML);
                         }
-                    }, 5000);
+                    }, 3000);
                 }
 
                 adsResize() {
@@ -202,6 +202,8 @@
                     }
                     ad.isMoving = true;
                     ad.index++;
+                    // console.log(ad.index - ad.adsLength / 2);
+                    Ad.focusPoint(ad.index - ad.adsLength / 2);
                     Ad.animate(ad.adsListHTML, { left: - ad.singleWidth * ad.index }, () => {
                         if (ad.index >= (ad.adsLength - 1)) {
                             ad.adsListHTML.style.left = - ad.singleWidth * (ad.adsLength / 2 - 1) + "px";
@@ -219,12 +221,27 @@
                     }
                     ad.isMoving = true;
                     ad.index--;
+                    // console.log(ad.index - ad.adsLength / 2);
+                    Ad.focusPoint(ad.index - ad.adsLength / 2);
                     Ad.animate(ad.adsListHTML, { left: - ad.singleWidth * ad.index }, () => {
                         if (ad.index <= (ad.adsLength / 2 - 1)) {
                             ad.adsListHTML.style.left = - ad.singleWidth * (ad.adsLength - 1) + "px";
                             ad.index = (ad.adsLength - 1);
                         }
                         ad.isMoving = false;
+                    });
+                }
+
+                static focusPoint(index) {
+                    const points = document.querySelectorAll(".mianbaoxie span");
+                    points.forEach((item, i) => {
+                        if (item.classList.contains("active")) {
+                            item.classList.remove("active");
+                        }
+
+                        if (i == index) {
+                            item.classList.add("active");
+                        }
                     });
                 }
 
