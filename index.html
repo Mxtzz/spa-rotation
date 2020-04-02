@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- <script src="./test.js"></script> -->
+    <!-- <link rel="stylesheet" href="./test.css"> -->
+    <title>Banner</title>
+    <style>
+        .container {
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .box {
+            max-width: 1600px;
+            min-height: 300px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+            background: #fff;
+            width: 100%;
+
+        }
+
+        ul {
+            padding: 0px;
+            margin: 0;
+            position: absolute;
+            background: #333333;
+        }
+
+        li {
+            list-style: none !important;
+            float: left;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: auto 100%;
+        }
+
+        .mov {
+            position: absolute;
+            top: 40%;
+            height: 20%;
+            width: 30px;
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            font-size: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.1s linear;
+            cursor: pointer;
+        }
+
+        .mov:hover {
+            box-shadow: 0px 0px 6px #000;
+            transition: all 0.1s linear;
+        }
+
+        .prev {
+            left: 0;
+        }
+
+        .next {
+            right: 0;
+        }
+
+        .mianbaoxie {
+            position: absolute;
+            bottom: 4px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .mianbaoxie span {
+            height: 20px;
+            width: 20px;
+            margin: 0 6px;
+            font-size: 14px;
+            background: #aaa;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .active {
+            color: #fff;
+            background: #f00;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="box" id="box"></div>
+    </div>
+
+    <script>
+        window.onload = () => {
+            const defaultArr = [
+                { URL: "./img/b1.png" },
+                { URL: "./img/b2.png" },
+                { URL: "./img/b3.png" },
+                { URL: "./img/b4.png" },
+                { URL: "./img/b5.png" }
+            ];
+
+            setTimeout(() => {
+                const myAd = new Ad(defaultArr);
+            }, 200);
+
+
+            class Ad {
+                constructor(adArr) {
+                    this.adsListHTML = null;
+                    this.singleWidth = 0;
+                    this.imgHeight = 300;
+                    this.index = adArr.length;
+                    this.adsTimer = null;
+                    this.isMoving = false;
+                    this.initAds(adArr);
+                }
+
+                initAds(adArr) {
+                    const ad = this;
+
+                    let boxHtml = "";
+                    boxHtml += `<ul></ul>`;
+                    boxHtml += `<div href="#" class="prev mov">&lt;</div>`;
+                    boxHtml += `<div href="#" class="next mov">&gt;</div>`;
+                    boxHtml += `<div class="mianbaoxie">`;
+                    for (let i = 1; i <= adArr.length; i ++) {
+                        boxHtml += `<span>${i}</span>`;
+                    }
+                    boxHtml += `</div>`;
+
+                    document.querySelector(".box").innerHTML = boxHtml;
+                    adArr = adArr.concat(adArr);
+                    ad.adsListHTML = document.querySelector(".box ul")
+
+                    adArr.map((item) => {
+                        const li = document.createElement('li');
+                        li.className = 'ads';
+                        li.style.backgroundImage = `url('${item.URL}')`;
+
+                        ad.adsListHTML.appendChild(li);
+                    });
+
+                    ad.adsResize();
+
+                    document.querySelector('.prev').addEventListener("click", () => {
+                        ad.runPrev(ad.adsListHTML);
+                    });
+
+                    document.querySelector('.next').addEventListener("click", () => {
+                        ad.runNext(ad.adsListHTML);
+                    });
+
+                    document.addEventListener("visibilitychange", () => {
+                        clearInterval(ad.adsTimer);
+                        if (document.visibilityState !== "hidden") {
+                            ad.adsTimer = setInterval(() => {
+                                if (!ad.isMoving) {
+                                    ad.runNext(ad.adsListHTML);
+                                }
+                            }, 5000);
+                        }
+                    });
+
+                    clearInterval(ad.adsTimer);
+                    ad.adsTimer = setInterval(() => {
+                        if (!ad.isMoving) {
+                            ad.runNext(ad.adsListHTML);
+                        }
+                    }, 5000);
+                }
+
+                adsResize() {
+                    const ad = this;
+                    ad.singleWidth = document.querySelector(".box").offsetWidth;
+                    ad.adsListHTML = document.querySelector(".box ul");
+
+                    ad.adsListHTML.querySelectorAll(".ads").forEach((adItemHTML) => {
+                        adItemHTML.style.width = ad.singleWidth + "px";
+                        adItemHTML.style.height = ad.imgHeight + "px";
+                    });
+
+                    ad.adsLength = ad.adsListHTML.querySelectorAll(".ads").length;
+                    ad.adsListHTML.style.width = ad.adsLength * ad.singleWidth + "px";
+                    ad.adsListHTML.style.left = -ad.adsLength * ad.singleWidth / 2 + "px";
+                }
+
+                runNext() {
+                    const ad = this;
+                    if (ad.isMoving) {
+                        return;
+                    }
+                    ad.isMoving = true;
+                    ad.index++;
+                    Ad.animate(ad.adsListHTML, { left: - ad.singleWidth * ad.index }, () => {
+                        if (ad.index >= (ad.adsLength - 1)) {
+                            ad.adsListHTML.style.left = - ad.singleWidth * (ad.adsLength / 2 - 1) + "px";
+                            ad.index = (ad.adsLength / 2 - 1);
+                        }
+                        ad.isMoving = false;
+                    });
+
+                }
+
+                runPrev() {
+                    const ad = this;
+                    if (ad.isMoving) {
+                        return;
+                    }
+                    ad.isMoving = true;
+                    ad.index--;
+                    Ad.animate(ad.adsListHTML, { left: - ad.singleWidth * ad.index }, () => {
+                        if (ad.index <= (ad.adsLength / 2 - 1)) {
+                            ad.adsListHTML.style.left = - ad.singleWidth * (ad.adsLength - 1) + "px";
+                            ad.index = (ad.adsLength - 1);
+                        }
+                        ad.isMoving = false;
+                    });
+                }
+
+                static animate(obj, json, callback) {
+                    clearInterval(obj.timer);
+                    obj.timer = setInterval(() => {
+                        let isStop = true;
+                        for (let attr in json) {
+                            const now = parseInt(getComputedStyle(obj, null)[attr]);
+                            let speed = (json[attr] - now) / 8;
+                            speed = speed > 0 ? Math.ceil(speed) : Math.floor(speed);
+                            let cur = now + speed;
+                            obj.style[attr] = cur + 'px';
+
+                            if (json[attr] !== cur) {
+                                isStop = false;
+                            }
+                        }
+                        if (isStop) {
+                            clearInterval(obj.timer);
+                            callback && callback();
+                        }
+                    }, 30)
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
